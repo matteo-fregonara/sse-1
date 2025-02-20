@@ -3,3 +3,6 @@ numpy~=2.2.3
 torch
 tensorflow
 keras
+jax
+flax
+optax

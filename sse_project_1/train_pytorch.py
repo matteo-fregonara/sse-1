@@ -1,23 +1,25 @@
-import time
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-import numpy as np
+from shared_dataset import get_dataset
 
-# Set seeds for reproducibility
-np.random.seed(42)
+# Force CPU usage
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+device = torch.device('cpu')
+
+# Set seed for reproducibility
 torch.manual_seed(42)
 
-# Generate synthetic dataset
-X = np.random.randn(1000, 10).astype(np.float32)
-y = (np.sum(X[:, :3], axis=1) > 0).astype(np.float32)
+# Load the shared dataset
+X, y = get_dataset()
 
 # PyTorch Dataset
 class SimpleDataset(Dataset):
     def __init__(self, X, y):
-        self.X = torch.FloatTensor(X)
-        self.y = torch.FloatTensor(y)
+        self.X = torch.FloatTensor(X).to(device)
+        self.y = torch.FloatTensor(y).to(device)
 
     def __len__(self):
         return len(self.X)
@@ -52,7 +54,7 @@ def train_pytorch():
     train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
     # Initialize model and optimizer
-    model = SimpleNet()
+    model = SimpleNet().to(device)
     criterion = nn.BCELoss()
     optimizer = optim.Adam(
         model.parameters(),
@@ -92,5 +94,5 @@ def train_pytorch():
     return model
 
 if __name__ == "__main__":
-    print("Training PyTorch model...")
+    print("Training PyTorch model on CPU...")
     pytorch_model = train_pytorch()

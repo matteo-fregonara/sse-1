@@ -22,6 +22,7 @@ for /l %%i in (1, 1, 30) do (
     :: Create unique filenames for each run
     set "pytorch_result=results\pytorch_iter%%i_!date_time!.csv"
     set "tensorflow_result=results\tensorflow_iter%%i_!date_time!.csv"
+    set "jax_result=results\jax_iter%%i_!date_time!.csv"
 
     echo Running PyTorch training...
     energibridge.exe -o !pytorch_result! --summary python train_pytorch.py
@@ -33,6 +34,13 @@ for /l %%i in (1, 1, 30) do (
     echo Running TensorFlow training...
     energibridge.exe -o !tensorflow_result! --summary python train_tensorflow.py
     echo Results saved to !tensorflow_result!
+
+    echo Waiting 60 seconds...
+    timeout /t 60 /nobreak > nul
+
+    echo Running Jax training...
+    energibridge.exe -o !jax_result! --summary python train_jax.py
+    echo Results saved to !jax_result!
 
     echo Waiting 60 seconds...
     timeout /t 60 /nobreak > nul
