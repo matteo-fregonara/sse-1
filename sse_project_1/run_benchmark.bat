@@ -4,10 +4,13 @@ setlocal enabledelayedexpansion
 :: Create results directory if it doesn't exist
 if not exist "results" mkdir results
 
+echo Warming up by running Fibonacci for 5min
+python warmup.py
+
 echo Starting training benchmark - 30 iterations
 echo ========================================
 
-for /l %%i in (1, 1, 3) do (
+for /l %%i in (1, 1, 30) do (
     echo.
     echo Running iteration %%i of 30
     echo ----------------------------------------
@@ -25,14 +28,14 @@ for /l %%i in (1, 1, 3) do (
     echo Results saved to !pytorch_result!
 
     echo Waiting 60 seconds...
-    timeout /t 1 /nobreak > nul
+    timeout /t 60 /nobreak > nul
 
     echo Running TensorFlow training...
     energibridge.exe -o !tensorflow_result! --summary python train_tensorflow.py
     echo Results saved to !tensorflow_result!
 
     echo Waiting 60 seconds...
-    timeout /t 1 /nobreak > nul
+    timeout /t 60 /nobreak > nul
 )
 
 echo.
