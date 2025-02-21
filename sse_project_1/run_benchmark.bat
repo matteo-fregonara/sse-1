@@ -6,7 +6,7 @@ if not exist "results" mkdir results
 
 echo Warming up by running Fibonacci for 5min
 python warmup.py
-
+cls
 echo Starting training benchmark - 30 iterations
 echo ========================================
 
