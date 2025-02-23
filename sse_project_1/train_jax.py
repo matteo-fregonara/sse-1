@@ -18,7 +18,7 @@ key = jax.random.PRNGKey(42)
 
 # Load the shared dataset
 X, y = get_dataset()
-y_jax = y.reshape(-1, 1)  # Reshape for JAX
+y = y.reshape(-1, 1)  # Reshape for JAX
 
 # Print which device JAX is using
 print(f"JAX is using: {jax.devices()}")
@@ -92,12 +92,11 @@ def train_jax():
     batch_size = 32
     num_batches = len(X) // batch_size
     X_jax = jnp.array(X)
-    y_jax = jnp.array(y_jax)
+    y_jax = jnp.array(y)  # Now using the reshaped y from earlier
 
     for epoch in range(10):
         # Shuffle data
         shuffle_idx = jax.random.permutation(key, len(X))
-        key = jax.random.fold_in(key, epoch)
         shuffled_x = X_jax[shuffle_idx]
         shuffled_y = y_jax[shuffle_idx]
 
