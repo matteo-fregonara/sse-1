@@ -35,7 +35,6 @@ def extract_energy_data(file_path):
             # Look for "Energy consumption in joules: X"
             match = pattern.search(line)
             if match and current_fw in energy_data:
-                # Convert the extracted string to float
                 joules_value = float(match.group(1))
                 energy_data[current_fw].append(joules_value)
 
@@ -44,54 +43,46 @@ def extract_energy_data(file_path):
 # Extract the data
 energy_data = extract_energy_data(file_path)
 
-# Let's print out how many samples we got for each framework
 print("Extracted energy samples (count):")
 for fw, values in energy_data.items():
     print(f"{fw}: {len(values)} samples")
 
-# Convert each list to a numpy array (convenient for stats tests)
+# Convert each list to numpy arrays
 pytorch_vals = np.array(energy_data["pytorch"])
 tensorflow_vals = np.array(energy_data["tensorflow"])
 jax_vals = np.array(energy_data["jax"])
 
-# Make sure we have enough data to do statistics:
-# (at least 2 data points per framework)
+# Basic sanity check
 if len(pytorch_vals) < 2 or len(tensorflow_vals) < 2 or len(jax_vals) < 2:
-    print("Not enough data in one or more frameworks to perform t-tests.")
+    print("Not enough data in one or more frameworks to perform a statistical test.")
     exit()
 
-def compare_two_groups(arr1, arr2, label1, label2):
+def compare_two_groups_mannwhitney(arr1, arr2, label1, label2):
     """
-    Returns a dictionary with:
-     - Welch's t-test results
-     - Student's t-test results
+    Compare two independent groups (arr1, arr2) using Mann-Whitney U test.
+    Returns a dictionary with the U statistic and the p-value.
     """
-    # Welch’s t-test (equal_var=False)
-    welch_stat, welch_p = stats.ttest_ind(arr1, arr2, equal_var=False)
+    # You can specify 'alternative="two-sided"' explicitly (this is default in recent scipy versions).
+    # If your version of scipy is older, pass alternative="two-sided" to ensure a two-sided test:
+    # stats.mannwhitneyu(arr1, arr2, alternative='two-sided')
 
-    # Student’s t-test (equal_var=True)
-    student_stat, student_p = stats.ttest_ind(arr1, arr2, equal_var=True)
-
+    u_statistic, p_value = stats.mannwhitneyu(arr1, arr2, alternative='two-sided')
     return {
         "Frameworks": f"{label1} vs {label2}",
-        "Welch's t-statistic": welch_stat,
-        "Welch's p-value": welch_p,
-        "Student's t-statistic": student_stat,
-        "Student's p-value": student_p
+        "Mann-Whitney U": u_statistic,
+        "p-value": p_value
     }
 
-# Compare PyTorch vs TensorFlow
-pt_tf = compare_two_groups(pytorch_vals, tensorflow_vals, "pytorch", "tensorflow")
-# Compare PyTorch vs JAX
-pt_jax = compare_two_groups(pytorch_vals, jax_vals, "pytorch", "jax")
-# Compare TensorFlow vs JAX
-tf_jax = compare_two_groups(tensorflow_vals, jax_vals, "tensorflow", "jax")
+# Now compare with Mann-Whitney U
+pt_tf = compare_two_groups_mannwhitney(pytorch_vals, tensorflow_vals, "pytorch", "tensorflow")
+pt_jax = compare_two_groups_mannwhitney(pytorch_vals, jax_vals, "pytorch", "jax")
+tf_jax = compare_two_groups_mannwhitney(tensorflow_vals, jax_vals, "tensorflow", "jax")
 
-# 4. Store results in a DataFrame for clarity
+# Store results in a DataFrame
 results = pd.DataFrame([pt_tf, pt_jax, tf_jax])
-print("\nStatistical Significance Results:\n")
+print("\nNon-parametric Mann-Whitney Results:\n")
 print(results)
 
-# 5. Optionally save the results to CSV
-results.to_csv("statistical_significance_results.csv", index=False)
-print("\nSaved results to 'statistical_significance_results.csv'")
+# Optionally save the results to CSV
+results.to_csv("mann_whitney_results.csv", index=False)
+print("\nSaved Mann-Whitney results to 'mann_whitney_results.csv'")

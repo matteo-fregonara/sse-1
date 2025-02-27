@@ -1,0 +1,4 @@
+Frameworks,Mann-Whitney U,p-value
+pytorch vs tensorflow,0.0,3.019859359162157e-11
+pytorch vs jax,879.0,2.371469434621338e-10
+tensorflow vs jax,900.0,3.019859359162157e-11
